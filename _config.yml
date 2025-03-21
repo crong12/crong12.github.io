@@ -9,7 +9,7 @@ url: "" # the base hostname & protocol for your site, e.g. http://example.com
 # Author Settings
 author: Chin Rong Ong
 author-img: solo_pic_circle.jpg # add your photo
-about-author: I am a web developer focusing on front-end development. Always hungry to keep learning. # add description
+about-author: I am a data scientist who loves digging into fun datasets. This is a repository for my favourite visualisations. # add description
 social-github: crong12 # add your Github handle
 social-linkedin: ongchinrong12
 social-email: ongchinrong12@gmail.com
