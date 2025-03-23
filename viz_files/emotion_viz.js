@@ -43,45 +43,45 @@ d3.json("/viz_files/emotion_counts.json").then(function(data) {
         svg.selectAll(".main-viz").remove();
         
         const mainViz = svg.append("g").attr("class", "main-viz");
-
+    
         // Add X axis
         const x = d3.scaleLinear()
             .domain([filterRange[0], filterRange[1]])
             .range([0, width]);
             
         const xAxis = mainViz.append("g")
-            .attr("transform", `translate(0,${height * 0.8})`)
-            .call(d3.axisBottom(x).tickSize(-height * 0.7).ticks(20))
+            .attr("transform", `translate(0,${height * 1})`) 
+            .call(d3.axisBottom(x).tickSize(-height * 0.8).ticks(20)) 
             .attr("class", "x-axis");
             
         xAxis.select(".domain").remove();
         // Customization
         xAxis.selectAll(".tick line").attr("stroke", "#b8b8b8");
-
+    
         // Add X axis label
         mainViz.append("text")
             .attr("text-anchor", "end")
             .attr("x", width)
-            .attr("y", height - 10)
+            .attr("y", height+30) 
             .text("Episode Number");
-
+    
         // Add Y axis (optional for streamgraph, but included for reference)
         const y = d3.scaleLinear()
             .domain([-d3.max(filteredData, d => d3.sum(keys, k => d[k])) / 2, 
                     d3.max(filteredData, d => d3.sum(keys, k => d[k])) / 2])
-            .range([height, 0]);
-
+            .range([height, 0]); // Y range remains tied to full height
+    
         // Color palette
         const color = d3.scaleOrdinal()
             .domain(keys)
             .range(d3.schemeDark2);
-
+    
         // Stack the data with streamgraph offset
         const stackedData = d3.stack()
             .offset(d3.stackOffsetSilhouette)
             .keys(keys)
             (filteredData);
-
+    
         // Create a tooltip
         const Tooltip = mainViz
             .append("text")
@@ -89,7 +89,7 @@ d3.json("/viz_files/emotion_counts.json").then(function(data) {
             .attr("y", 20)
             .style("opacity", 0)
             .style("font-size", "17px");
-
+    
         // Tooltip functions
         const mouseover = function(event, d) {
             Tooltip.style("opacity", 1);
@@ -105,14 +105,14 @@ d3.json("/viz_files/emotion_counts.json").then(function(data) {
             Tooltip.style("opacity", 0);
             d3.selectAll(".myArea").style("opacity", 1).style("stroke", "none");
         };
-
+    
         // Area generator
         const area = d3.area()
             .x(d => x(d.data.episode))
             .y0(d => y(d[0]))
             .y1(d => y(d[1]))
             .curve(d3.curveCatmullRom); // Smooth streamgraph curves
-
+    
         // Show the areas
         mainViz.selectAll("mylayers")
             .data(stackedData)
@@ -153,7 +153,7 @@ d3.json("/viz_files/emotion_counts.json").then(function(data) {
         // Create slider group
         const slider = svg.append("g")
             .attr("class", "slider")
-            .attr("transform", `translate(0,${height + 30})`);
+            .attr("transform", `translate(0,${height + 80})`);
             
         // Add slider track
         slider.append("line")
@@ -252,7 +252,7 @@ d3.json("/viz_files/emotion_counts.json").then(function(data) {
         // Add title for the slider
         slider.append("text")
             .attr("x", width / 2)
-            .attr("y", -35)
+            .attr("y", -20)
             .attr("text-anchor", "middle")
             .style("font-size", "14px")
             .text("Episode Range Filter");
@@ -278,7 +278,7 @@ d3.json("/viz_files/emotion_counts.json").then(function(data) {
             .style("text-align", "center")
             .style("margin-bottom", "8px")
             .style("font-weight", "bold")
-            .text("Story Arc Quick Selection");
+            .text("Arc Selection");
         
         // Add "All Episodes" button
         buttonContainer.append("button")
