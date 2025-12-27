@@ -57,39 +57,37 @@ def _(mo):
     # import dependencies
     import os
     import random
-    import pandas as pd
+    import polars as pl
     import numpy as np
     import altair as alt
     from wordcloud import WordCloud
     from PIL import Image
 
-    pd.set_option('display.max_rows', None)
     alt.renderers.enable('svg')
     alt.renderers.set_embed_options(actions=False)
     mo.output.clear()
-    return Image, WordCloud, alt, np, os, pd, random
+    return Image, WordCloud, alt, np, os, pl, random
 
 
 @app.cell
-def _(mo, pd):
+def _(mo, pl):
     # import dialogue dataset
-    opDialogues = pd.read_csv(
-        str(mo.notebook_location() / "public" / "one_piece_dialogues_emotions.csv"), 
-        compression=None
+    # Polars handles HTTP URLs natively in WASM without compression issues
+    opDialogues = pl.read_csv(
+        str(mo.notebook_location() / "public" / "one_piece_dialogues_emotions.csv")
     )
     return (opDialogues,)
 
 
 @app.cell
-def _(opDialogues):
+def _(opDialogues, pl):
     # Aggregate number of lines per character
     character_line_counts = (
-        opDialogues[['matched_name']]
-        .dropna()
-        .groupby('matched_name')
-        .size()
-        .reset_index(name='line_count')
-        .sort_values('line_count', ascending=False)
+        opDialogues
+        .filter(pl.col('matched_name').is_not_null())
+        .group_by('matched_name')
+        .agg(pl.len().alias('line_count'))
+        .sort('line_count', descending=True)
     )
     return (character_line_counts,)
 
@@ -215,13 +213,13 @@ def _():
 
 
 @app.cell(disabled=True, hide_code=True)
-def _(opDialogues, straw_hats):
+def _(opDialogues, pl, straw_hats):
     all_text = []
 
     # combine all sentences into one large text body
     for idx, strawhat in enumerate(straw_hats):
-        char_df = opDialogues[opDialogues['matched_name'] == strawhat]
-        char_texts = ' '.join(char_df['cleaned_sentence'].dropna())
+        char_df = opDialogues.filter(pl.col('matched_name') == strawhat)
+        char_texts = ' '.join(char_df['cleaned_sentence'].drop_nulls().to_list())
         all_text.append(char_texts)
     return (all_text,)
 
@@ -425,19 +423,23 @@ def _(arc_selector):
 
 
 @app.cell
-def _(opDialogues):
+def _(opDialogues, pl):
     # group by episode and emotion to get counts
-    # We use .size() to count lines. If you want to weight by confidence, 
-    # use .sum() on the confidence column instead.
-    # then pivot to wide, fill zeros, and melt back to long
     emotion_counts = (
-        opDialogues.groupby(['episode', 'emotion'])
-        .size()
-        .reset_index(name='count')
-        .pivot(index='episode', columns='emotion', values='count')
-        .fillna(0)
-        .reset_index()
-        .melt(id_vars='episode', var_name='emotion', value_name='count')
+        opDialogues
+        .group_by(['episode', 'emotion'])
+        .agg(pl.len().alias('count'))
+        .pivot(
+            values='count',
+            index='episode',
+            columns='emotion'
+        )
+        .fill_null(0)
+        .unpivot(
+            index='episode',
+            variable_name='emotion',
+            value_name='count'
+        )
     )
     return (emotion_counts,)
 
@@ -554,7 +556,10 @@ def _(arc_selector, emotion_chart, emotion_counts, mo):
     # Check if the chart has a valid sub-selection (User dragged it, or init worked)
     # We define "sub-selection" as a range smaller than the full dataset
     chart_has_selection = False
-    if not chart_data.empty:
+    # Check for both pandas and polars DataFrames
+    is_empty = chart_data.is_empty() if hasattr(chart_data, 'is_empty') else chart_data.empty
+    
+    if not is_empty:
         c_min = int(chart_data["episode"].min())
         c_max = int(chart_data["episode"].max())
 
