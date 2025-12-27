@@ -73,7 +73,7 @@ def _(mo):
 @app.cell
 def _(mo, pd):
     # import dialogue dataset
-    opDialogues = pd.read_csv(mo.notebook_location() / 'public' / 'one_piece_dialogues_emotions.csv')
+    opDialogues = pd.read_csv(str(mo.notebook_location() / "public" / "one_piece_dialogues_emotions.csv"))
     return (opDialogues,)
 
 
@@ -640,7 +640,7 @@ def _(mo):
 @app.cell
 def _(mo):
     profile_pic = mo.image(
-        src="_site/assets/img/solo_pic_circle.jpg", # Path to your image
+        src="public/solo_pic_circle.jpg",
         width=80,
         height=80,
         style={"border-radius": "50%", "object-fit": "cover"}
