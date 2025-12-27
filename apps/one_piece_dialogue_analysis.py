@@ -75,7 +75,7 @@ def _(mo, pd):
     # import dialogue dataset
     opDialogues = pd.read_csv(
         str(mo.notebook_location() / "public" / "one_piece_dialogues_emotions.csv"), 
-        compression='infer'
+        compression={'method': None}
     )
     return (opDialogues,)
 
