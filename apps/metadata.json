@@ -1,0 +1,7 @@
+{
+  "one_piece_dialogue_analysis": {
+    "description": "By extracting and sanitising subtitle data (translated by popular fansubs) from One Piece, I analysed and visualised the dialogue patterns and emotions of the main Straw Hat crew members across several arcs, spanning several hundred episodes.",
+    "tags": ["NLP", "Data Visualisation", "Emotion Analysis", "One Piece"]
+  }
+}
+

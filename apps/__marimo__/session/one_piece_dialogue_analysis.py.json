@@ -1,0 +1,363 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.18.4"
+  },
+  "cells": [
+    {
+      "id": "vblA",
+      "code_hash": "4787ec23bcaa2fff24b5277b4786ba33",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><hr />\n<h2 id='introduction'>Introduction</h2>\n\n<span class=\"paragraph\"><a href=\"https://onepiece.fandom.com/wiki/One_Piece_Wiki\" rel=\"noopener noreferrer\" target=\"_blank\">One Piece</a> is one of the most popular and longest running manga/ anime series out there. It's honestly insane to think that the anime is the same age as me \ud83e\udd2f</span>\n<span class=\"paragraph\">I admit I'm a relatively \u201clate bloomer\u201d \u2013 I only started watching One Piece in late 2024 after being persuaded to do so by my fianc\u00e9e. After all the time I spent (probably more than I should have) catching up with the thousand-plus-episode series, I now see myself as another member of the Straw Hat crew.</span>\n<span class=\"paragraph\">At the same time, I\u2019m an aspiring data scientist looking to expand the breadth of my skills in the field. I\u2019d started exploring NLP techniques, and wanted to practise my skills in a project that was interesting to me (and didn\u2019t involve the typical IMDb datasets). I also recently discovered <a href=\"https://marimo.io/\" rel=\"noopener noreferrer\" target=\"_blank\">marimo</a> notebooks and wanted to explore its capabilities further. So while the Straw Hats continue to search for the One Piece, I decided to do a little digging of my own\u2026</span>\n<span class=\"paragraph\">What started out as casual meal-time watching became a deep dive into the intricacies of the One Piece world, as I sought to uncover insights into the characters and dynamics of the show. Being a dialogue-heavy show like most typical animes, I was interested in examining dialogue data, which could reveal hidden dynamics that may not be immediately obvious to the casual watcher. I scoured the Internet for labelled dialogue data from fansubs (these are fan-translated subtitles for non-Japanese speakers like myself), and managed to obtain labelled dialogue data from episode 293 to 774, with a few exceptions sprinkled in-between. Building the dataset was a huge challenge, but I will not elaborate here as that is not the point of this post.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "c659355487a5f98fe4e1db86424ef84e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id='line_count'>Which characters had more lines than the rest?</h2>\n\n<span class=\"paragraph\">First, let's take a look at the number of lines spoken by each character in the dataset. Use the slider to adjust how many top characters you want to see in the bar chart below.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "452fb89d297162174d46cc9fccaf697b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">This paints a pretty clear picture. Clearly, Luffy had the most lines, more than double that of the runner-up!</span>\n<span class=\"paragraph\">Interestingly though, Usopp was the first runner-up here. Although he's arguably the weakest Straw Hat crew member, it's clear that he is still an instrumental member of the crew.</span>\n<span class=\"paragraph\">Outside of the Straw Hat crew members, the characters with most lines are \"marine\" and \"pirate\". These are NPC characters that I've just lumped together into a collective body.</span>\n<span class=\"paragraph\">Did anyone surprise you? Take your time to play around with the chart!</span>\n<span class=\"paragraph\"><br></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "c9cb761208c8539e25b760ba18dd2503",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id='wordclouds'>Wordclouds for the Straw Hat crew</h2>\n\n<span class=\"paragraph\">Now, let's get to know each character better. What better way to do that than to visualise each character\u2019s most commonly used words and/or phrases via a word cloud?</span>\n<span class=\"paragraph\">The colour scheme for each word cloud is based on the colours associated with each character\u2019s appearance (e.g., Luffy\u2019s straw hat, Zoro\u2019s green hair, etc.).</span>\n<span class=\"paragraph\">Have a look at each character\u2019s word cloud below, and see if you can discover any interesting insights! I\u2019ll list some of mine below the viz.</span>\n<span class=\"paragraph\"><br></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Pvdt",
+      "code_hash": "55d1864793f0865620ece6fc2bb687f3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"_1\"></h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZBYS",
+      "code_hash": "d2f2496733f42c0e9bde9f53fee56d4f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id='emotional_landscape'>Visualising the Emotional Landscape Across Episodes</h2>\n\n<span class=\"paragraph\">One Piece, being the masterpiece it is, makes us viewers go through an emotional rollercoaster for sure. I wanted to map out this rollercoaster by examining the emotions present within each episode, on a line-by-line basis.</span>\n<span class=\"paragraph\">I used a <a href=\"https://huggingface.co/michellejieli/emotion_text_classifier\" rel=\"noopener noreferrer\" target=\"_blank\">DistilRoBERTa</a> model, fine-tuned on dialogue data from the popular TV show \"Friends\" (another favourite of mine), to perform emotion classification in each line. I chose this model from the plethora of models available on HuggingFace because it specifically used <em>dialogue</em> data to fine-tune the base DistilRoBERTa model, so I believe it most closely aligns with my use case here.</span>\n<span class=\"paragraph\">I visualised the emotional landscape across episodes as a streamgraph, with each colour representing an emotion. I like this viz as it helps us visualise the dynamic ebbing and flowing of certain emotions from one episode to the next.</span>\n<span class=\"paragraph\"><strong>Explore it for yourself!</strong> Highlight the grey bar below the chart to adjust the episode range, or select a specific arc from the dropdown list.</span>\n<span class=\"paragraph\"><br></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "TXez",
+      "code_hash": "2ad2bc565978f7625e3102f0267d9613",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">There's a whole bunch of insights we can discover here, and I won't attempt to go into everything.</span>\n<span class=\"paragraph\">If you're wondering what you can look at with this chart, here's an example:</span>\n<span class=\"paragraph\">Use the dropdown list to select the \"Thriller Bark\" arc. What do you observe?</span>\n<span class=\"paragraph\">For me, I felt it was quite interesting to look at how the levels of <em>joy</em> changed throughout the arc. As with most storylines, the middle part is often rife with conflict, and we see that there is relatively little joy in that area (the segment is compressed in the streamgraph). Towards the end of the arc, we see joy occupying a much larger part of the graph, which is exactly what we'd expect as Luffy and his crew defeated the bad guys!</span>\n<span class=\"paragraph\">P.S. There's clearly missing data here and there for certain episodes. It's not ideal, but it is what it is when it comes to datasets of this nature. Sorry about that!</span>\n<span class=\"paragraph\"><br></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "dNNg",
+      "code_hash": "fe7b8c8128220d13bddb368678731c76",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><hr />\n<h3 id=\"thanks-for-exploring-the-grand-line-with-me\">Thanks for exploring the Grand Line with me!</h3>\n<span class=\"paragraph\">Did you find any interesting treasure from the data here? I'd love to hear them \ud83d\ude04</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hbol",
+      "code_hash": "708546c8e87da8148b12f272414103c9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<img src='public/one_piece_dialogue_analysis.jpg' />"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "f0417e7d214f8b3eda4a7f6da0250d28",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: center;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"one-piece-dialogue-analysis\">One Piece Dialogue Analysis</h1>\n<hr /></span></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "3f5831b33b50773846e219c191d5cb40",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-callout-output data-html='&quot;&lt;span&gt;&#92;nI&amp;#x27;d like to add here that fan-translated subtitles may not fully capture the nuances of the original Japanese dialogue. Additionally, emotion classification was performed using a language model, which (as with all models) may not always accurately reflect the intended emotions of the characters. Therefore, while we can derive some interesting insights here, they should be interpreted with caution.&#92;n&lt;/span&gt;&quot;' data-kind='&quot;warn&quot;'></marimo-callout-output>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "9c93242d8f481bc6bac53b7a8f810396",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "1b6485807cc9b2bd53487add399ee4ae",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "54575a6725006c04dd3650ffc514b5f1",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "4436231c2d444d8d7b464f0dee00e784",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\u001b[33m[W 251227 17:21:00 altair_transformer:79]\u001b(B\u001b[m Failed to convert data to arrow format, falling back to CSV: Missing optional dependency 'pyarrow'.  Use pip or conda to install pyarrow.\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "b78a19d188fcf04990b1960d624d9c5d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "71b860cc8692afadc848b6019ca7926d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><marimo-ui-element object-id='RGSE-0' random-id='22e4a5fa-52cb-4e93-ac43-0896a0a0fb13'><marimo-slider data-initial-value='10' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Select the cutoff point.&lt;/span&gt;&lt;/span&gt;&quot;' data-start='1' data-stop='76' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element><span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"number-of-lines-for-the-top-27-characters\">Number of lines for the top 27 characters</h2></span><marimo-ui-element object-id='BYtC-0' random-id='3417eda8-4048-b30c-cce6-8d26b1b34028'><marimo-vega data-initial-value='{}' data-label='null' data-spec='{&quot;config&quot;:{&quot;view&quot;:{&quot;continuousWidth&quot;:300,&quot;continuousHeight&quot;:300,&quot;stroke&quot;:null},&quot;axis&quot;:{&quot;grid&quot;:false,&quot;labelFontSize&quot;:12,&quot;titleFontSize&quot;:14}},&quot;layer&quot;:[{&quot;mark&quot;:{&quot;type&quot;:&quot;bar&quot;},&quot;encoding&quot;:{&quot;color&quot;:{&quot;condition&quot;:{&quot;param&quot;:&quot;param_e65e9902f93ada45&quot;,&quot;field&quot;:&quot;line_count&quot;,&quot;legend&quot;:null,&quot;scale&quot;:{&quot;scheme&quot;:&quot;blues&quot;},&quot;type&quot;:&quot;quantitative&quot;},&quot;value&quot;:&quot;#d3d3d3&quot;},&quot;tooltip&quot;:[{&quot;field&quot;:&quot;matched_name&quot;,&quot;title&quot;:null,&quot;type&quot;:&quot;nominal&quot;},{&quot;field&quot;:&quot;line_count&quot;,&quot;format&quot;:&quot;,&quot;,&quot;title&quot;:&quot;Lines&quot;,&quot;type&quot;:&quot;quantitative&quot;}],&quot;x&quot;:{&quot;field&quot;:&quot;line_count&quot;,&quot;title&quot;:&quot;Number of Lines&quot;,&quot;type&quot;:&quot;quantitative&quot;},&quot;y&quot;:{&quot;field&quot;:&quot;matched_name&quot;,&quot;sort&quot;:&quot;-x&quot;,&quot;title&quot;:null,&quot;type&quot;:&quot;nominal&quot;}},&quot;name&quot;:&quot;view_a45f981e0edd1a84_0&quot;},{&quot;mark&quot;:{&quot;type&quot;:&quot;text&quot;,&quot;align&quot;:&quot;left&quot;,&quot;dx&quot;:4},&quot;encoding&quot;:{&quot;text&quot;:{&quot;field&quot;:&quot;line_count&quot;,&quot;type&quot;:&quot;quantitative&quot;},&quot;x&quot;:{&quot;field&quot;:&quot;line_count&quot;,&quot;type&quot;:&quot;quantitative&quot;},&quot;y&quot;:{&quot;field&quot;:&quot;matched_name&quot;,&quot;sort&quot;:&quot;-x&quot;,&quot;type&quot;:&quot;nominal&quot;}}}],&quot;data&quot;:{&quot;url&quot;:&quot;./@file/488-548194-GQ3BLCwh.csv&quot;,&quot;format&quot;:{&quot;type&quot;:&quot;csv&quot;}},&quot;height&quot;:{&quot;step&quot;:18},&quot;params&quot;:[{&quot;name&quot;:&quot;param_e65e9902f93ada45&quot;,&quot;select&quot;:{&quot;type&quot;:&quot;point&quot;,&quot;clear&quot;:&quot;mouseout&quot;,&quot;fields&quot;:[&quot;matched_name&quot;],&quot;on&quot;:&quot;mouseover&quot;},&quot;views&quot;:[&quot;view_a45f981e0edd1a84_0&quot;]}],&quot;width&quot;:&quot;container&quot;,&quot;&#36;schema&quot;:&quot;https://vega.github.io/schema/vega-lite/v6.1.0.json&quot;}' data-chart-selection='false' data-field-selection='true' data-embed-options='{&quot;actions&quot;:false}'></marimo-vega></marimo-ui-element></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "cf972ed49746a2072f84c12e85d5233f",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "865ba0e81dd3cd8df30093e375d022b5",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "de3b10fd304b77c52cb3e838ca9fcd83",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "f9bb4df3fe252deff53f6605114381f0",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "b59a0100633a27dfab784c7cda241912",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "b559ee48592977432230bc98457400d5",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "56f82314f09c77ed06fe39faa702d586",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "8cf676a8abaeaa14deaf9f1185f296d0",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ecfG",
+      "code_hash": "d181eb30e89ab3ff4933a7a178017d1b",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "aLJB",
+      "code_hash": "af5aff858604042ad90904ce5e026bad",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nHfw",
+      "code_hash": "70a9f1330ebbe671d6662fc1b6f17160",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "xXTn",
+      "code_hash": "6294abc298d3e1ee59154223a5d0f17c",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "AjVT",
+      "code_hash": "cece7c499acce9e8c4649cf8b3091f4e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "pHFh",
+      "code_hash": "47c694c273a0eb360f65435ecd5fc9dc",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "NCOB",
+      "code_hash": "ad4cba42d7ef3e000e99181d96e54186",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "aqbW",
+      "code_hash": "48c1719711a78dfb8703c084a5924b3e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TRpd",
+      "code_hash": "2c6313fc8584488d5f49aa2ef55be71e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "yCnT",
+      "code_hash": "1f122adfbbe2f7e0cf24b83b1bd8e697",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "wlCL",
+      "code_hash": "9149674944190a3732fc1c1df3f05afb",
+      "outputs": [],
+      "console": []
+    }
+  ]
+}

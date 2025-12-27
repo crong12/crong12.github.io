@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chin Rong's Data Dungeon</title>
+  <meta name="description" content="Interactive data analyses and visualisations by me!">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=PT+Serif:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'body': '#515151',
+            'dark': '#333030',
+            'dark-blue': '#263959',
+            'bg': '#fbfbfb',
+          },
+          fontFamily: {
+            'sans': ['Lato', 'sans-serif'],
+            'serif': ['PT Serif', 'serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom styles for Jekyll-like aesthetics */
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Author name dot separator */
+    .author-name::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      display: block;
+      width: 7px;
+      height: 7px;
+      border-radius: 100%;
+      background-color: #515151;
+    }
+    
+    /* Contact title with horizontal lines */
+    .contact-title::before,
+    .contact-title::after {
+      content: "";
+      display: block;
+      height: 2px;
+      width: calc(50% - 48px);
+      transform: translateY(-50%);
+      position: absolute;
+      top: 50%;
+      background-color: #515151;
+    }
+    .contact-title::before { left: 0; }
+    .contact-title::after { right: 0; }
+    
+    /* Profile image hover effect */
+    .profile-img {
+      transition: transform 0.35s;
+    }
+    .profile-img:hover {
+      transform: scale3d(0.9, 0.9, 1);
+    }
+    
+    /* Social icon hover effect */
+    .social-icon {
+      transition: all 350ms cubic-bezier(0.13, 0.43, 0.54, 1.82);
+    }
+    .social-icon:hover {
+      color: #333030;
+      transform: scale(1.2);
+    }
+    
+    /* Card hover effect */
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 45px -10px rgba(10, 16, 34, 0.2);
+    }
+  </style>
+</head>
+<body class="font-sans text-body bg-bg m-0">
+  
+  <aside class="fixed top-0 left-0 bottom-0 w-60 h-full p-5 bg-white flex flex-col justify-between
+                max-md:relative max-md:w-full max-md:h-auto max-md:p-4 max-md:shadow-sm z-10">
+    
+    <header class="text-center mb-10 max-md:mb-4">
+      <div class="w-24 h-24 mx-auto mb-3 rounded-full overflow-hidden bg-dark">
+        <a href="#">
+          <img src="assets/img/solo_pic_circle.jpg" alt="Chin Rong Ong" class="w-full h-full rounded-full profile-img">
+        </a>
+      </div>
+      <div class="author-name font-serif text-base uppercase text-dark font-bold relative pb-4 mb-3">
+        Chin Rong Ong
+      </div>
+      <p class="text-base mb-3 leading-relaxed">
+        I am a data scientist (currently @ Spotify) who loves digging into fun datasets. This is a personal repository for some of my analyses and visualisations!
+      </p>
+    </header>
+    
+    <footer class="max-md:mb-2">
+      <section class="contact">
+        <p class="text-sm text-body/70 max-md:hidden text-center">
+          All views and opinions expressed here are my own.
+        </p>
+        <br>
+        <h3 class="contact-title relative text-dark font-normal text-xs uppercase text-center mb-2 max-md:hidden">
+          Contact me
+        </h3>
+        <ul class="list-none m-0 p-0 text-center flex justify-center gap-3">
+          <li>
+            <a href="http://github.com/crong12" target="_blank" class="social-icon text-body block p-1 text-lg" title="GitHub">
+              <i class="fa-brands fa-github"></i>
+            </a>
+          </li>
+          <li>
+            <a href="https://linkedin.com/in/ongchinrong12" target="_blank" class="social-icon text-body block p-1 text-lg" title="LinkedIn">
+              <i class="fa-brands fa-linkedin"></i>
+            </a>
+          </li>
+          <li>
+            <a href="mailto:ongchinrong12@gmail.com" class="social-icon text-body block p-1 text-lg" title="Email">
+              <i class="fa-solid fa-envelope"></i>
+            </a>
+          </li>
+        </ul>
+      </section>
+      <div class="text-sm text-center mt-4 max-md:hidden">
+        <p>&copy; 2025 Chin Rong Ong</p>
+      </div>
+    </footer>
+  </aside>
+  
+  <div class="min-h-screen p-8 pl-72 flex flex-col
+              max-md:p-4 max-md:pl-4 max-md:min-h-0">
+    
+    <div class="flex-1 flex flex-col w-full max-w-5xl">
+    
+    {% if apps %}
+    <section class="w-full mb-12">
+      <h2 class="font-serif text-3xl font-bold text-dark-blue mb-8">Projects</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {% for app in apps %}
+        <div class="card-hover bg-white rounded-xl overflow-hidden shadow-sm flex flex-col">
+          {% if app.image_path %}
+          <img src="{{ app.image_path }}" alt="{{ app.display_name }}" class="w-full h-56 object-cover">
+          {% else %}
+          <div class="w-full h-56 bg-gray-200 flex items-center justify-center text-gray-500">
+            <i class="fa-solid fa-image text-4xl opacity-50"></i>
+          </div>
+          {% endif %}
+          
+          <div class="p-6 flex flex-col flex-1">
+            <h3 class="font-serif text-2xl font-bold text-dark-blue mb-3">{{ app.display_name }}</h3>
+            
+            {% if app.tags %}
+            <div class="flex flex-wrap gap-2 mb-4">
+              {% for tag in app.tags %}
+              <span class="bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full">{{ tag }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if app.description %}
+            <p class="text-body/80 text-base leading-relaxed mb-6 flex-1">
+              {{ app.description }}
+            </p>
+            {% endif %}
+            
+            <a href="{{ app.html_path }}" 
+               class="inline-block text-center text-dark-blue font-medium border-2 border-dark-blue/20 bg-transparent hover:bg-dark-blue hover:text-white hover:border-dark-blue
+                      py-2.5 px-5 text-sm no-underline transition-all duration-300 rounded-lg mt-auto">
+              Launch Marimo App →
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if notebooks %}
+    <section class="w-full mb-8">
+      <div class="bg-white rounded-lg shadow-sm p-5 mb-5">
+        <h2 class="font-serif text-2xl font-normal text-dark-blue mb-2">Interactive Notebooks</h2>
+        <p class="text-body text-sm">Dive into the code! These notebooks are in edit mode - you can modify, experiment, and learn from the full analysis.</p>
+      </div>
+      
+      <div class="flex flex-wrap gap-4">
+        {% for notebook in notebooks %}
+        <div class="card-hover bg-white rounded-lg overflow-hidden shadow-sm flex-1 min-w-[280px] max-w-full
+                    md:max-w-[calc(50%-0.5rem)] lg:max-w-[calc(33.333%-0.75rem)]">
+          <div class="p-4">
+            <h3 class="font-serif text-xl text-dark-blue mb-3">{{ notebook.display_name }}</h3>
+            <a href="{{ notebook.html_path }}" 
+               class="inline-block text-dark-blue border border-dark-blue/30 bg-bg hover:bg-dark-blue/10 
+                      py-2 px-4 text-sm no-underline transition-colors">
+              Open Notebook →
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+    
+    </div>
+    <footer class="w-full pt-6 border-t border-gray-300 text-center text-sm text-body/70 md:hidden mt-auto">
+      <p class="mb-2">
+        built with <a href="https://marimo.io" target="_blank" class="text-dark-blue hover:underline font-semibold">marimo</a>
+      </p>
+      <p>&copy; 2025 Chin Rong Ong. All rights reserved.</p>
+    </footer>
+    
+    <footer class="w-full pt-6 mt-auto text-center text-sm text-body/70 max-md:hidden">
+      <p>
+        built with <a href="https://marimo.io" target="_blank" class="text-dark-blue hover:underline font-semibold">marimo</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
