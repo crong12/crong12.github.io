@@ -15,6 +15,7 @@ dependencies = [
     "pydantic>=2",
     "python-lsp-ruff>=2.3.0",
     "python-lsp-server>=1.14.0",
+    "pyzmq>=27.1.0",
     "ruff>=0.14.10",
     "vegafusion>=2.0.3",
     "vl-convert-python>=1.8.0",
