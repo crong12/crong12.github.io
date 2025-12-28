@@ -371,7 +371,7 @@ def _(mo):
 
     I visualised the emotional landscape across episodes as a streamgraph, with each colour representing an emotion. I like this viz as it helps us visualise the dynamic ebbing and flowing of certain emotions from one episode to the next.
 
-    **Explore it for yourself!** Highlight the grey bar below the chart to adjust the episode range, or select a specific arc from the dropdown list.
+    **Explore it for yourself!** First, select the metric you want (for the most part, there's not a huge difference between the two). Then, highlight the grey bar below the chart to adjust the episode range, or select a specific arc from the dropdown list.
 
     <br>
     """)
@@ -380,12 +380,17 @@ def _(mo):
 
 @app.cell
 def _(mo):
+    # allow users to choose which aggregation metric they'd like
     metric_select = mo.ui.radio(
-        options=["score", "count"],
-        value="score",
-        label="Metric: sum of emotion scores vs. count of lines",
+        options={
+            "Varying confidence: we acknowledge the model's uncertainty by giving less weight to less certain predictions": 1,
+            "Full confidence: this assumes we are fully confident in all classifications made by the model": 2,
+        },
+        value="Varying confidence: we acknowledge the model's uncertainty by giving less weight to less certain predictions",
+        label="Choose your metric!",
     )
-    return
+    metric_select
+    return (metric_select,)
 
 
 @app.cell
@@ -413,39 +418,55 @@ def _(mo):
         value="All Episodes: 293 to 774", 
         label="Jump to Arc:"
     )
+    arc_selector
     return arc_options, arc_selector
 
 
 @app.cell
-def _(arc_selector):
-    arc_selector
-    return
+def _(metric_select, opDialogues, pl):
+    # based on radio option selected, group by episode and aggregate emotions
 
-
-@app.cell
-def _(opDialogues, pl):
-    # group by episode and emotion to get counts
-    emotion_counts = (
-        opDialogues
-        .group_by(['episode', 'emotion'])
-        .agg(pl.len().alias('count'))
-        .pivot(
-            values='count',
-            index='episode',
-            columns='emotion'
+    if metric_select.value == 1:
+        emotion_counts = (
+            opDialogues
+            .group_by(['episode', 'emotion'])
+            .agg(
+                pl.col('emotion_score').sum().alias('total_score') # sums confidence scores which are [0,1]
+            )
+            .pivot(
+                values='total_score',
+                index='episode',
+                on='emotion'
+            )
+            .fill_null(0)
+            .unpivot(
+                index='episode',
+                variable_name='emotion',
+                value_name='total_score'
+            )
         )
-        .fill_null(0)
-        .unpivot(
-            index='episode',
-            variable_name='emotion',
-            value_name='count'
+    else:
+        emotion_counts = (
+            opDialogues
+            .group_by(['episode', 'emotion'])
+            .agg(pl.len().alias('total_score')) # counts number of rows each emotion has
+            .pivot(
+                values='total_score',
+                index='episode',
+                on='emotion'
+            )
+            .fill_null(0)
+            .unpivot(
+                index='episode',
+                variable_name='emotion',
+                value_name='total_score'
+            )
         )
-    )
     return (emotion_counts,)
 
 
 @app.cell
-def _(alt, arc_options, arc_selector, emotion_counts, mo):
+def _(alt, arc_options, arc_selector, emotion_counts, metric_select, mo):
     # create base chart
     base = alt.Chart(emotion_counts).encode(
         x=alt.X(
@@ -458,7 +479,7 @@ def _(alt, arc_options, arc_selector, emotion_counts, mo):
             scale=alt.Scale(scheme='dark2'),
             legend=alt.Legend(title="Emotion")
         ),
-        tooltip=['episode', 'emotion', 'count']
+        tooltip=['episode', 'emotion', 'total_score']
     )
 
     current_range = arc_selector.value
@@ -481,7 +502,7 @@ def _(alt, arc_options, arc_selector, emotion_counts, mo):
         .encode(
             # We override the color here to make it simple gray
             color=alt.value('lightgray'),
-            y=alt.Y('sum(count):Q', axis=None, title=''),
+            y=alt.Y('sum(total_score):Q', axis=None, title=''),
             x=alt.X('episode:Q', axis=alt.Axis(title=''), title='', scale=alt.Scale(nice=False))
         )
         .properties(
@@ -496,10 +517,10 @@ def _(alt, arc_options, arc_selector, emotion_counts, mo):
             brush
         )
         .transform_joinaggregate(
-            TotalCount='sum(count)'
+            TotalCount='sum(total_score)'
         )
         .transform_calculate(
-            Percent='datum.count / datum.TotalCount'
+            Percent='datum.total_score / datum.TotalCount'
         )
         .encode(
             x=alt.X('sum(Percent):Q', title=None, axis=alt.Axis(format='%')),
@@ -518,7 +539,7 @@ def _(alt, arc_options, arc_selector, emotion_counts, mo):
     focus_chart = (
         base.mark_area(interpolate='catmull-rom')
         .encode(
-            y=alt.Y('count:Q', stack='center', axis=None)
+            y=alt.Y('total_score:Q', stack='center', axis=None)
         )
         .transform_filter(
             brush
@@ -537,7 +558,9 @@ def _(alt, arc_options, arc_selector, emotion_counts, mo):
 
     # display
     emotion_chart = mo.ui.altair_chart(full_chart)
-    return (emotion_chart,)
+
+    emotion_chart_title = mo.md(f"### Selected metric: {"varying confidence" if metric_select.value == 1 else "full confidence"}")
+    return emotion_chart, emotion_chart_title
 
 
 @app.cell
@@ -558,7 +581,7 @@ def _(arc_selector, emotion_chart, emotion_counts, mo):
     chart_has_selection = False
     # Check for both pandas and polars DataFrames
     is_empty = chart_data.is_empty() if hasattr(chart_data, 'is_empty') else chart_data.empty
-    
+
     if not is_empty:
         c_min = int(chart_data["episode"].min())
         c_max = int(chart_data["episode"].max())
@@ -580,8 +603,11 @@ def _(arc_selector, emotion_chart, emotion_counts, mo):
 
 
 @app.cell
-def _(emotion_chart):
-    emotion_chart
+def _(emotion_chart, emotion_chart_title, mo):
+    mo.vstack([
+        emotion_chart_title,
+        emotion_chart
+    ])
     return
 
 
@@ -637,6 +663,7 @@ def _(mo):
                         "https://linkedin.com/in/ongchinrong12": f"{mo.icon('uiw:linkedin')} LinkedIn",
                         "https://github.com/crong12": f"{mo.icon('uiw:github')} GitHub"
                     },
+                    "https://crong12.github.io": f"{mo.icon('iconamoon:home')} Back to Main Page"
                 },
                 orientation="vertical",
             ),
@@ -647,6 +674,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
+    # create author card
     profile_pic = mo.image(
         src="public/solo_pic_circle.jpg",
         width=80,
