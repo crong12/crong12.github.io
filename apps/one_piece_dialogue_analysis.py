@@ -47,6 +47,20 @@ def _(mo):
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    ### Data Structure
+
+    I built two separate datasets that have some overlap in episode counts.
+
+    The first dataset covers episodes 293 to 774, with several missing episodes sprinkled in-between (most fillers/crossover episodes that are unimportant to the storyline). This dataset is labelled with the speaker (i.e. who spoke each line), and is therefore super useful and interesting for further analysis into each character.
+
+    The second dataset covers episodes 1 to 1,000 (with only two filler/crossover episodes missing). This dataset is not labelled with a speaker, but is not completely useless either, as we can still use it to look at _emotions_ across episodes and arcs.
+    """)
+    return
+
+
+@app.cell
 def _():
     import marimo as mo
     return (mo,)
@@ -73,17 +87,21 @@ def _(mo):
 def _(mo, pl):
     # import dialogue dataset
     # Polars handles HTTP URLs natively in WASM without compression issues
-    opDialogues = pl.read_csv(
+    opDialogues_labelled = pl.read_csv(
+        str(mo.notebook_location() / "public" / "one_piece_dialogues_labelled_cleaned.csv")
+    )
+
+    opDialogues_unlabelled = pl.read_csv(
         str(mo.notebook_location() / "public" / "one_piece_dialogues_emotions.csv")
     )
-    return (opDialogues,)
+    return opDialogues_labelled, opDialogues_unlabelled
 
 
 @app.cell
-def _(opDialogues, pl):
+def _(opDialogues_labelled, pl):
     # Aggregate number of lines per character
     character_line_counts = (
-        opDialogues
+        opDialogues_labelled
         .filter(pl.col('matched_name').is_not_null())
         .group_by('matched_name')
         .agg(pl.len().alias('line_count'))
@@ -158,6 +176,8 @@ def _(mo):
 @app.cell
 def _(mo):
     mo.md(r"""
+    ___
+
     <h2 id='line_count'>Which characters had more lines than the rest?</h2>
 
     First, let's take a look at the number of lines spoken by each character in the dataset. Use the slider to adjust how many top characters you want to see in the bar chart below.
@@ -369,9 +389,9 @@ def _(mo):
 
     I used a [DistilRoBERTa](https://huggingface.co/michellejieli/emotion_text_classifier) model, fine-tuned on dialogue data from the popular TV show "Friends" (another favourite of mine), to perform emotion classification in each line. I chose this model from the plethora of models available on HuggingFace because it specifically used _dialogue_ data to fine-tune the base DistilRoBERTa model, so I believe it most closely aligns with my use case here.
 
-    I visualised the emotional landscape across episodes as a streamgraph, with each colour representing an emotion. I like this viz as it helps us visualise the dynamic ebbing and flowing of certain emotions from one episode to the next.
+    I visualised the emotional landscape across episodes as a streamgraph, with each colour representing an emotion. I like this viz as it helps us visualise the dynamic ebbing and flowing of certain emotions from one episode to the next. Below the streamgraph, we have a layered area chart so we can visualise (more accurately) which emotions were dominant throughout the episodes.
 
-    **Explore it for yourself!** First, select the metric you want (for the most part, there's not a huge difference between the two). Then, highlight the grey bar below the chart to adjust the episode range, or select a specific arc from the dropdown list.
+    **Explore it for yourself!** First, select the metric you want (for the most part, there's not a huge difference between the two). Then, select a specific arc from the dropdown list or simply highlight the grey bar below the charts to finely adjust the episode range.
 
     <br>
     """)
@@ -389,46 +409,115 @@ def _(mo):
         value="Varying confidence: we acknowledge the model's uncertainty by giving less weight to less certain predictions",
         label="Choose your metric!",
     )
-    metric_select
     return (metric_select,)
 
 
 @app.cell
-def _(mo):
+def _(mo, set_interaction_mode):
     # define arc episode ranges
     arcs = [
-        { "name": "All Episodes", "start": 293, "end": 774 },
-        { "name": "Enies Lobby", "start": 293, "end": 312 },
-        { "name": "Thriller Bark", "start": 337, "end": 377 },
-        { "name": "Sabaody", "start": 385, "end": 405 },
+        { "name": "All Episodes", "start": 1, "end": 1000 },
+
+        # --- East Blue ---
+        { "name": "Romance Dawn", "start": 1, "end": 3 },
+        { "name": "Orange Town", "start": 4, "end": 8 },
+        { "name": "Syrup Village", "start": 9, "end": 18 },
+        { "name": "Baratie", "start": 19, "end": 30 },
+        { "name": "Arlong Park", "start": 31, "end": 44 },
+        { "name": "Loguetown", "start": 45, "end": 53 },
+
+        # --- Alabasta ---
+        { "name": "Reverse Mountain", "start": 62, "end": 63 },
+        { "name": "Whisky Peak", "start": 64, "end": 67 },
+        { "name": "Diary of Koby-Meppo", "start": 68, "end": 69 },
+        { "name": "Little Garden", "start": 70, "end": 77 },
+        { "name": "Drum Island", "start": 78, "end": 91 },
+        { "name": "Alabasta", "start": 92, "end": 130 },
+
+        # --- Sky Island ---
+        { "name": "Jaya", "start": 144, "end": 152 },
+        { "name": "Skypiea", "start": 153, "end": 195 },
+
+        # --- Water 7 ---
+        { "name": "Long Ring Long Land", "start": 207, "end": 219 },
+        { "name": "Water 7", "start": 229, "end": 263 },
+        { "name": "Enies Lobby", "start": 264, "end": 312 },
+        { "name": "Post-Enies Lobby", "start": 313, "end": 325 },
+
+        # --- Thriller Bark ---
+        { "name": "Thriller Bark", "start": 337, "end": 381 },
+
+        # --- Summit War ---
+        { "name": "Sabaody Archipelago", "start": 385, "end": 405 },
         { "name": "Amazon Lily", "start": 408, "end": 417 },
         { "name": "Impel Down", "start": 422, "end": 452 },
         { "name": "Marineford", "start": 457, "end": 489 },
+        { "name": "Post-War", "start": 490, "end": 516 },
+
+        # --- Fish-Man Island ---
+        { "name": "Return to Sabaody", "start": 517, "end": 522 },
         { "name": "Fishman Island", "start": 523, "end": 574 },
-        { "name": "Punk Hazard", "start": 579, "end": 628 },
+
+        # --- Dressrosa ---
+        { "name": "Punk Hazard", "start": 579, "end": 625 },
         { "name": "Dressrosa", "start": 629, "end": 746 },
-        { "name": "Zou", "start": 751, "end": 774 },
+
+        # --- Four Emperors / Whole Cake Island ---
+        { "name": "Zou", "start": 751, "end": 779 },
+        { "name": "Whole Cake Island", "start": 783, "end": 877 },
+        { "name": "Reverie", "start": 878, "end": 889 },
+
+        # --- Wano Kuni ---
+        { "name": "Wano Country (Incomplete Data)", "start": 890, "end": 1000 }
     ]
 
     arc_options = {f"""{arc["name"]}: {arc["start"]} to {arc["end"]}""": [arc["start"], arc["end"]] for arc in arcs}
 
+    def on_arc_change(value):
+        '''for state tracking; set state when dropdown is selected'''
+        set_interaction_mode("preset")
+
     # create dropdown
     arc_selector = mo.ui.dropdown(
         options=arc_options, 
-        value="All Episodes: 293 to 774", 
-        label="Jump to Arc:"
+        value="All Episodes: 1 to 1000", 
+        label="Jump to Arc:",
+        searchable=True,
+        on_change=on_arc_change
     )
-    arc_selector
     return arc_options, arc_selector
 
 
 @app.cell
-def _(metric_select, opDialogues, pl):
+def _(arc_selector, metric_select, mo):
+    mo.hstack([metric_select, arc_selector])
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    <br>
+    """)
+    return
+
+
+@app.cell
+def _(arc_selector, metric_select, mo):
+    selected_params = mo.hstack([
+        mo.md(f"### Selected metric: {"varying confidence" if metric_select.value == 1 else "full confidence"}"),
+        mo.md(f"### Selected arc: {arc_selector.selected_key}")
+    ])
+    return (selected_params,)
+
+
+@app.cell
+def _(metric_select, opDialogues_unlabelled, pl):
     # based on radio option selected, group by episode and aggregate emotions
 
     if metric_select.value == 1:
         emotion_counts = (
-            opDialogues
+            opDialogues_unlabelled
             .group_by(['episode', 'emotion'])
             .agg(
                 pl.col('emotion_score').sum().alias('total_score') # sums confidence scores which are [0,1]
@@ -447,7 +536,7 @@ def _(metric_select, opDialogues, pl):
         )
     else:
         emotion_counts = (
-            opDialogues
+            opDialogues_unlabelled
             .group_by(['episode', 'emotion'])
             .agg(pl.len().alias('total_score')) # counts number of rows each emotion has
             .pivot(
@@ -466,7 +555,14 @@ def _(metric_select, opDialogues, pl):
 
 
 @app.cell
-def _(alt, arc_options, arc_selector, emotion_counts, metric_select, mo):
+def _(
+    alt,
+    arc_options,
+    arc_selector,
+    emotion_counts,
+    mo,
+    set_interaction_mode,
+):
     # create base chart
     base = alt.Chart(emotion_counts).encode(
         x=alt.X(
@@ -484,7 +580,7 @@ def _(alt, arc_options, arc_selector, emotion_counts, metric_select, mo):
 
     current_range = arc_selector.value
 
-    if arc_selector.value == arc_options["All Episodes: 293 to 774"]:
+    if arc_selector.value == arc_options["All Episodes: 1 to 1000"]:
         brush = alt.selection_interval(
             encodings=['x'],
             empty='all'
@@ -503,7 +599,7 @@ def _(alt, arc_options, arc_selector, emotion_counts, metric_select, mo):
             # We override the color here to make it simple gray
             color=alt.value('lightgray'),
             y=alt.Y('sum(total_score):Q', axis=None, title=''),
-            x=alt.X('episode:Q', axis=alt.Axis(title=''), title='', scale=alt.Scale(nice=False))
+            x=alt.X('episode:Q', axis=alt.Axis(title=''), scale=alt.Scale(nice=False))
         )
         .properties(
             height=30
@@ -511,27 +607,35 @@ def _(alt, arc_options, arc_selector, emotion_counts, metric_select, mo):
         .add_params(brush)
     )
 
-    emotion_bar_chart = (
-        base.mark_bar()
+    emotion_area_chart = (
+        base.mark_area(opacity=0.5, interpolate='monotone')
         .transform_filter(
             brush
         )
         .transform_joinaggregate(
+            groupby=['episode'],
             TotalCount='sum(total_score)'
         )
         .transform_calculate(
             Percent='datum.total_score / datum.TotalCount'
         )
         .encode(
-            x=alt.X('sum(Percent):Q', title=None, axis=alt.Axis(format='%')),
-            y=alt.Y('emotion:N', sort='-x', title=None),
+            x=alt.X('episode:Q', axis=alt.Axis(title=''), scale=alt.Scale(nice=False)), 
+            y=alt.Y(
+                'sum(Percent):Q', 
+                stack=None,
+                title=None,
+                axis=alt.Axis(format='%')
+            ),
+            color=alt.Color('emotion:N', title=None),
             tooltip=[
-                'emotion', 
+                'emotion',
+                'episode:Q',
                 alt.Tooltip('sum(Percent):Q', title='Proportion', format='.1%')
             ]
         )
         .properties(
-            height=120
+            height=60
         )
     )
 
@@ -551,69 +655,74 @@ def _(alt, arc_options, arc_selector, emotion_counts, metric_select, mo):
 
     # combine
     full_chart = (
-        focus_chart & emotion_bar_chart & context_chart
+        focus_chart & emotion_area_chart & context_chart
     ).configure_view(
         stroke=None
+    ).configure_axis(
+        grid=False
     )
 
-    # display
-    emotion_chart = mo.ui.altair_chart(full_chart)
+    def on_chart_change(value):
+        '''for state tracking; set state when chart selected'''
+        set_interaction_mode("manual")
 
-    emotion_chart_title = mo.md(f"### Selected metric: {"varying confidence" if metric_select.value == 1 else "full confidence"}")
-    return emotion_chart, emotion_chart_title
+    # display
+    emotion_chart = mo.ui.altair_chart(full_chart, on_change=on_chart_change)
+    return (emotion_chart,)
 
 
 @app.cell
-def _(arc_selector, emotion_chart, emotion_counts, mo):
-    # 1. Get the global min/max for reference
+def _(mo):
+    # track source of last chart interaction
+    get_interaction_mode, set_interaction_mode = mo.state("preset")
+    return get_interaction_mode, set_interaction_mode
+
+
+@app.cell
+def _(arc_selector, emotion_chart, emotion_counts, get_interaction_mode, mo):
+    # Get global min/max episode for reference (1 and 1000)
     global_min = int(emotion_counts["episode"].min())
     global_max = int(emotion_counts["episode"].max())
 
-    # 2. Get the values from the Chart and the Dropdown
+    # get current values
     chart_data = emotion_chart.value
-    preset_range = arc_selector.value # Returns [start, end]
+    preset_range = arc_selector.value
+    current_mode = get_interaction_mode()
 
-    # 3. Determine the Start/End to display
+    # default to global
     start_ep, end_ep = global_min, global_max
 
-    # Check if the chart has a valid sub-selection (User dragged it, or init worked)
-    # We define "sub-selection" as a range smaller than the full dataset
-    chart_has_selection = False
-    # Check for both pandas and polars DataFrames
-    is_empty = chart_data.is_empty() if hasattr(chart_data, 'is_empty') else chart_data.empty
+    # Check if chart is empty
+    is_chart_empty = chart_data.is_empty() if hasattr(chart_data, 'is_empty') else chart_data.empty
 
-    if not is_empty:
-        c_min = int(chart_data["episode"].min())
-        c_max = int(chart_data["episode"].max())
-
-        # If the chart selection is STRICTLY smaller than the full range, trust it.
-        if c_min > global_min or c_max < global_max:
-            start_ep, end_ep = c_min, c_max
-            chart_has_selection = True
-
-    # 4. Fallback Logic (The Fix)
-    # If the chart effectively shows "All" (because of lag or reset), 
-    # but the Dropdown is asking for a specific subset, trust the Dropdown.
-    if not chart_has_selection:
+    if current_mode == "preset":
+        # user last used the dropdown. display dropdown range
+        # ignore the chart's empty state (which is expected on init)
         start_ep, end_ep = preset_range
 
-    # 5. Display
+    elif current_mode == "manual":
+        # user last interacted with the chart
+
+        if not is_chart_empty:
+            # specific chart area selected
+            c_min = int(chart_data["episode"].min())
+            c_max = int(chart_data["episode"].max())
+            start_ep, end_ep = c_min, c_max
+        else:
+            # user clicked background to clear selection -> reset to global
+            start_ep, end_ep = global_min, global_max
+
     episode_selection = mo.md(f"### Selected Episodes: {start_ep} - {end_ep}")
     return (episode_selection,)
 
 
 @app.cell
-def _(emotion_chart, emotion_chart_title, mo):
+def _(emotion_chart, episode_selection, mo, selected_params):
     mo.vstack([
-        emotion_chart_title,
-        emotion_chart
+        mo.center(selected_params),
+        emotion_chart,
+        mo.center(episode_selection)
     ])
-    return
-
-
-@app.cell
-def _(episode_selection, mo):
-    mo.center(episode_selection)
     return
 
 
@@ -627,11 +736,17 @@ def _(mo):
     Use the dropdown list to select the "Thriller Bark" arc. What do you observe?
 
     For me, I felt it was quite interesting to look at how the levels of _joy_ changed throughout the arc. As with most storylines, the middle part is often rife with conflict, and we see that there is relatively little joy in that area (the segment is compressed in the streamgraph). Towards the end of the arc, we see joy occupying a much larger part of the graph, which is exactly what we'd expect as Luffy and his crew defeated the bad guys!
-
-    P.S. There's clearly missing data here and there for certain episodes. It's not ideal, but it is what it is when it comes to datasets of this nature. Sorry about that!
-
-    <br>
     """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.callout(
+        """
+        Some data caveats I feel I ought to mention here: As each line in this emotions dataset is not labelled, I couldn't group together adjacent lines that belong to the same speaker. This may have led to some downstream implications. For example, the number of distinct utterances would be over-counted. This may have also affected the classification of emotions, for example when an utterance is split across two lines, each line may have a different meaning on its own (and therefore resulted in a different emotion being classified to it).
+        """, 
+        kind='warn')
     return
 
 
