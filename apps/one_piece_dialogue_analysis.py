@@ -20,7 +20,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ___
@@ -34,21 +34,13 @@ def _(mo):
     At the same time, I’m an aspiring data scientist looking to expand the breadth of my skills in the field. I’d started exploring NLP techniques, and wanted to practise my skills in a project that was interesting to me (and didn’t involve the typical IMDb datasets). I also recently discovered [marimo](https://marimo.io/) notebooks and wanted to explore its capabilities further. So while the Straw Hats continue to search for the One Piece, I decided to do a little digging of my own…
 
     What started out as casual meal-time watching became a deep dive into the intricacies of the One Piece world, as I sought to uncover insights into the characters and dynamics of the show. Being a dialogue-heavy show like most typical animes, I was interested in examining dialogue data, which could reveal hidden dynamics that may not be immediately obvious to the casual watcher. I scoured the Internet for labelled dialogue data from fansubs (these are fan-translated subtitles for non-Japanese speakers like myself), and managed to obtain labelled dialogue data from episode 293 to 774, with a few exceptions sprinkled in-between. Building the dataset was a huge challenge, but I will not elaborate here as that is not the point of this post.
-    """)
-    return
 
+    /// admonition | Heads Up!
 
-@app.cell
-def _(mo):
-    mo.callout("""
     I'd like to add here that fan-translated subtitles may not fully capture the nuances of the original Japanese dialogue. Additionally, emotion classification was performed using a language model, which (as with all models) may not always accurately reflect the intended emotions of the characters. Therefore, while we can derive some interesting insights here, they should be interpreted with caution.
-    """, kind='warn')
-    return
 
+    ///
 
-@app.cell
-def _(mo):
-    mo.md(r"""
     ### Data Structure
 
     I built two separate datasets that have some overlap in episode counts.
@@ -173,7 +165,7 @@ def _(mo):
     return (top_n_slider,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ___
@@ -191,7 +183,7 @@ def _(final_chart, line_count_title, mo, top_n_slider):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     This paints a pretty clear picture. Clearly, Luffy had the most lines, more than double that of the runner-up!
@@ -210,6 +202,8 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ___
+
     <h2 id='wordclouds'>Wordclouds for the Straw Hat crew</h2>
 
     Now, let's get to know each character better. What better way to do that than to visualise each character’s most commonly used words and/or phrases via a word cloud?
@@ -349,7 +343,7 @@ def _():
 
 @app.cell
 def _(mo, observations, straw_hat_dropdown):
-    # retrieve wordcloud for each character
+    # for purpose of app, retrieve wordcloud image for each character
     img_path = f"public/wordclouds/{straw_hat_dropdown.value}_wc.png"
 
     # display using native mo.image
@@ -375,14 +369,8 @@ def _(mo, obs, output, straw_hat_dropdown):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    #
-    """)
-    return
+    ___
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
     <h2 id='emotional_landscape'>Visualising the Emotional Landscape Across Episodes</h2>
 
     One Piece, being the masterpiece it is, makes us viewers go through an emotional rollercoaster for sure. I wanted to map out this rollercoaster by examining the emotions present within each episode, on a line-by-line basis.
@@ -736,17 +724,15 @@ def _(mo):
     Use the dropdown list to select the "Thriller Bark" arc. What do you observe?
 
     For me, I felt it was quite interesting to look at how the levels of _joy_ changed throughout the arc. As with most storylines, the middle part is often rife with conflict, and we see that there is relatively little joy in that area (the segment is compressed in the streamgraph). Towards the end of the arc, we see joy occupying a much larger part of the graph, which is exactly what we'd expect as Luffy and his crew defeated the bad guys!
+
+    /// details | **Caveats**
+        type: warn
+
+    Some data caveats I feel I ought to mention here: As each line in this emotions dataset is not labelled, I couldn't group together adjacent lines that belong to the same speaker. This may have led to some downstream implications. For example, the number of distinct utterances would be over-counted. This may have also affected the classification of emotions, for example when an utterance is split across two lines, each line may have a different meaning on its own (and therefore resulted in a different emotion being classified to it).
+    ///
+
+    <br>
     """)
-    return
-
-
-@app.cell
-def _(mo):
-    mo.callout(
-        """
-        Some data caveats I feel I ought to mention here: As each line in this emotions dataset is not labelled, I couldn't group together adjacent lines that belong to the same speaker. This may have led to some downstream implications. For example, the number of distinct utterances would be over-counted. This may have also affected the classification of emotions, for example when an utterance is split across two lines, each line may have a different meaning on its own (and therefore resulted in a different emotion being classified to it).
-        """, 
-        kind='warn')
     return
 
 
@@ -778,7 +764,7 @@ def _(mo):
                         "https://linkedin.com/in/ongchinrong12": f"{mo.icon('uiw:linkedin')} LinkedIn",
                         "https://github.com/crong12": f"{mo.icon('uiw:github')} GitHub"
                     },
-                    "https://crong12.github.io": f"{mo.icon('iconamoon:home')} Back to Main Page"
+                    "https://crong12.github.io": f"{mo.icon('iconamoon:home')} Back to Home Page<br/>(Opens in New Tab)"
                 },
                 orientation="vertical",
             ),
